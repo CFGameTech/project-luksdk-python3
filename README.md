@@ -3,13 +3,6 @@
 
 > 仅需将 HTTP 请求转换为对应结构体后调用相关函数并填充返回值即可，关于参数的校验等行为交由 SDK 内部处理。
 
-# Go Mod
-可通过以下方式引入依赖
-
-```shell
-go get -u github.com/kercylan98/project-luksdk-go
-```
-
 # 示例代码
 ```python
 from typing import Optional
