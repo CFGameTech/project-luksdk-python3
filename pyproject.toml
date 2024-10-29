@@ -3,8 +3,8 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "luksdk"
-version = "0.0.2"
+name = "luk-sdk"
+version = "0.0.1"
 authors = [
     { name="LUKSDK", email="developer@luk.live" },
 ]
