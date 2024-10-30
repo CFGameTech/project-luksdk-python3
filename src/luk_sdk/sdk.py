@@ -2,13 +2,15 @@ import hashlib
 import json
 from typing import List, Dict, Any, Optional, TypeVar, Callable, Tuple
 
+from pydantic import BaseModel
+
 NotifyType = int
 Action = int
 
 Q = TypeVar('Q')  # Request 泛型类型
 T = TypeVar('T')  # Response 泛型类型
 
-RequestHandler = Callable[[Q], tuple[T, Exception]]
+RequestHandler = Callable[[Q], tuple[Optional[T], Optional[Exception]]]
 
 class SDK:
     def __init__(self, sign_secret: str):
@@ -88,10 +90,12 @@ def cast_to_signature_params(obj: Any) -> Dict[str, str]:
         for key, value in obj.items():
             result[str(key)] = str(value)
     else:
-        # Assuming obj is a dataclass or similar with a .__dict__ attribute
-        for key, value in vars(obj).items():
-            if key != "sign" and value:
-                result[key] = str(value)
+        # 遍历对象的属性
+        for attr, value in obj.dict(exclude_unset=True).items():
+            if value and attr != "sign":  # 跳过 "sign" 字段和空字段
+                if isinstance(value, (dict, list, tuple, set, type)) or callable(value):
+                    continue  # 跳过复杂类型
+                result[attr] = str(value)
 
     return result
 
@@ -111,109 +115,102 @@ class Actions:
     ACTION_CANCEL_PREPARE = 7     # 取消准备操作
     ACTION_GAME_END = 8           # 游戏结束操作
 
-class GetChannelTokenRequest:
-    def __init__(self, c_id: int, c_uid: str, code: str, timestamp: int, sign: str):
-        self.c_id = c_id
-        self.c_uid = c_uid
-        self.code = code
-        self.timestamp = timestamp
-        self.sign = sign
+class GetChannelTokenRequest(BaseModel):
+    c_id: int = 0
+    c_uid: str = ""
+    code: str = ""
+    timestamp: int = 0
+    sign: str = ""
 
-class GetChannelTokenResponse:
-    def __init__(self, token: str, left_time: int):
-        self.token = token
-        self.left_time = left_time
+class GetChannelTokenResponse(BaseModel):
+    token: str = ""
+    left_time: int = 0
 
-class RefreshChannelTokenRequest:
-    def __init__(self, c_id: int, c_uid: str, token: str, timestamp: int, sign: str, left_time: int):
-        self.c_id = c_id
-        self.c_uid = c_uid
-        self.token = token
-        self.timestamp = timestamp
-        self.sign = sign
-        self.left_time = left_time
+class RefreshChannelTokenRequest(BaseModel):
+    c_id: int = 0
+    c_uid: str = ""
+    token: str = ""
+    timestamp: int = 0
+    sign: str = ""
+    left_time: int = 0
 
-class RefreshChannelTokenResponse:
-    def __init__(self, token: str, left_time: int):
-        self.token = token
-        self.left_time = left_time
+class RefreshChannelTokenResponse(BaseModel):
+    token: str = ""
+    left_time: int = 0
 
-class GetChannelUserInfoRequest:
-    def __init__(self, c_id: int, c_uid: str, token: str, sign: str):
-        self.c_id = c_id
-        self.c_uid = c_uid
-        self.token = token
-        self.sign = sign
+class GetChannelUserInfoRequest(BaseModel):
+    g_id: int = 0
+    c_id: int = 0
+    c_uid: str = ""
+    token: str = ""
+    timestamp: int = 0
+    sign: str = ""
 
-class GetChannelUserInfoResponse:
-    def __init__(self, c_uid: str, name: str, avatar: str, coins: int):
-        self.c_uid = c_uid
-        self.name = name
-        self.avatar = avatar
-        self.coins = coins
+class GetChannelUserInfoResponse(BaseModel):
+    c_uid: str = ""
+    name: str = ""
+    avatar: str = ""
+    coins: int = 0
 
-class CreateChannelOrderRequestEntry:
-    def __init__(self, c_id: int, c_uid: str, c_room_id: str, g_id: int, coins_cost: int, score_cost: int, game_order_id: str, token: str, timestamp: int):
-        self.c_id = c_id
-        self.c_uid = c_uid
-        self.c_room_id = c_room_id
-        self.g_id = g_id
-        self.coins_cost = coins_cost
-        self.score_cost = score_cost
-        self.game_order_id = game_order_id
-        self.token = token
-        self.timestamp = timestamp
+class CreateChannelOrderRequestEntry(BaseModel):
+    c_id: int = 0
+    c_uid: str = ""
+    c_room_id: str = ""
+    g_id: int = 0
+    coins_cost: int = 0
+    score_cost: int = 0
+    game_order_id: str = ""
+    token: str = ""
+    timestamp: int = 0
 
-class CreateChannelOrderRequest:
-    def __init__(self, sign: str, data: List[CreateChannelOrderRequestEntry]):
-        self.sign = sign
-        self.data = data
+class CreateChannelOrderRequest(BaseModel):
+    sign: str = ""
+    data: List[CreateChannelOrderRequestEntry] = []
+    timestamp: int = 0
+    nonce: str = ""
 
-class CreateChannelOrderResponseEntry:
-    def __init__(self, c_uid: str, order_id: str, coins: int, status: int):
-        self.c_uid = c_uid
-        self.order_id = order_id
-        self.coins = coins
-        self.status = status
+class CreateChannelOrderResponseEntry(BaseModel):
+    c_uid: str = ""
+    order_id: str = ""
+    coins: int = 0
+    status: int = 0
 
 CreateChannelOrderResponse = List[CreateChannelOrderResponseEntry]
 
-class NotifyChannelOrderRequestEntry:
-    def __init__(self, c_id: int, c_uid: str, g_id: int, game_order_id: str, token: str, coins_cost: int, coins_award: int, score_cost: int, score_award: int, timestamp: int):
-        self.c_id = c_id
-        self.c_uid = c_uid
-        self.g_id = g_id
-        self.game_order_id = game_order_id
-        self.token = token
-        self.coins_cost = coins_cost
-        self.coins_award = coins_award
-        self.score_cost = score_cost
-        self.score_award = score_award
-        self.timestamp = timestamp
+class NotifyChannelOrderRequestEntry(BaseModel):
+    c_id: int = 0
+    c_uid: str = ""
+    g_id: int = 0
+    game_order_id: str = ""
+    token: str = ""
+    coins_cost: int = 0
+    coins_award: int = 0
+    score_cost: int = 0
+    score_award: int = 0
+    timestamp: int = 0
 
-class NotifyChannelOrderRequest:
-    def __init__(self, sign: str, data: List[NotifyChannelOrderRequestEntry]):
-        self.sign = sign
-        self.data = data
+class NotifyChannelOrderRequest(BaseModel):
+    sign: str = ""
+    data: List[NotifyChannelOrderRequestEntry] = []
+    timestamp: int = 0
+    nonce: str = ""
 
-class NotifyChannelOrderResponseEntry:
-    def __init__(self, c_uid: str, order_id: str, coins: int, score: int):
-        self.c_uid = c_uid
-        self.order_id = order_id
-        self.coins = coins
-        self.score = score
+class NotifyChannelOrderResponseEntry(BaseModel):
+    c_uid: str = ""
+    order_id: str = ""
+    coins: int = 0
+    score: int = 0
 
 NotifyChannelOrderResponse = List[NotifyChannelOrderResponseEntry]
 
-class NotifyGameRequest:
-    def __init__(self, c_id: int, g_id: int, notify_type: NotifyType, ext: str, data: str, timestamp: int, sign: str):
-        self.c_id = c_id
-        self.g_id = g_id
-        self.notify_type = notify_type
-        self.ext = ext
-        self.data = data
-        self.timestamp = timestamp
-        self.sign = sign
+class NotifyGameRequest(BaseModel):
+    c_id: int = 0
+    g_id: int = 0
+    notify_type: NotifyType = 0
+    ext: str = ""
+    data: str = ""
+    timestamp: int = 0
+    sign: str = ""
 
     def get_start_before(self) -> Optional['NotifyGameRequestStartBefore']:
         return json.loads(self.data, object_hook=lambda d: NotifyGameRequestStartBefore(**d))
@@ -224,38 +221,34 @@ class NotifyGameRequest:
     def get_end(self) -> Optional['NotifyGameRequestEnd']:
         return json.loads(self.data, object_hook=lambda d: NotifyGameRequestEnd(**d))
 
-class NotifyGameRequestStartBefore:
-    def __init__(self, room_id: int, round_id: int, player_ready_status: Dict[str, bool], notify_action: Action, game_setting: str):
-        self.room_id = room_id
-        self.round_id = round_id
-        self.player_ready_status = player_ready_status
-        self.notify_action = notify_action
-        self.game_setting = game_setting
+class NotifyGameRequestStartBefore(BaseModel):
+    room_id: int = 0
+    round_id: int = 0
+    player_ready_status: Dict[str, bool] = {}
+    notify_action: Action = 0
+    game_setting: str = ""
 
-class NotifyGameRequestGaming:
-    def __init__(self, room_id: int, round_id: int, player_num: int, player_uids: List[str], notify_action: Action):
-        self.room_id = room_id
-        self.round_id = round_id
-        self.player_num = player_num
-        self.player_uids = player_uids
-        self.notify_action = notify_action
+class NotifyGameRequestGaming(BaseModel):
+    room_id: int = 0
+    round_id: int = 0
+    player_num: int = 0
+    player_uids: List[str] = []
+    notify_action: Action = 0
 
-class NotifyGameRequestEnd:
-    def __init__(self, room_id: int, round_id: int, rank: List[str], is_force_end: bool, notify_action: Action):
-        self.room_id = room_id
-        self.round_id = round_id
-        self.rank = rank
-        self.is_force_end = is_force_end
-        self.notify_action = notify_action
+class NotifyGameRequestEnd(BaseModel):
+    room_id: int = 0
+    round_id: int = 0
+    rank: List[str] = []
+    is_force_end: bool = False
+    notify_action: Action = 0
 
-class NotifyGameResponse:
+class NotifyGameResponse(BaseModel):
     pass
 
-class Response:
-    def __init__(self, code: int = 0, msg: str = "", data: Optional[T] = None):
-        self.code = code
-        self.msg = msg
-        self.data = data
+class Response(BaseModel):
+    code: int = 0
+    msg: str = ""
+    data: Optional[T] = None
 
     def with_error(self, err: Exception, msg: Optional[str] = None) -> 'Response':
         self.code = -1  # Default error code

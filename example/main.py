@@ -1,15 +1,3 @@
-# 介绍
-本项目为 Python3 版本的 LukSDK，可直接引入使用，其中提供了需接入接口的通用实现，仅需结合业务逻辑将其返回即可。
-
-> 仅需将 HTTP 请求转换为对应结构体后调用相关函数并填充返回值即可，关于参数的校验等行为交由 SDK 内部处理。
-
-# 安装
-```shell
-pip install luk-sdk
-```
-
-# 示例代码
-```python
 from luk_sdk.sdk import *
 from flask import Flask, request, jsonify
 import logging
@@ -33,11 +21,11 @@ def get_channel_token():
 def refresh_channel_token():
     request_obj = RefreshChannelTokenRequest.model_validate(request.json)
 
-    response = sdk.refresh_channel_token(request_obj,
+    response = sdk.refresh_channel_token(request_obj, 
         lambda req: (RefreshChannelTokenResponse(
-            token="my-token",
-            left_time=7200
-        ), None))
+        token="my-token",
+        left_time=7200
+    ), None))
 
     logging.info("refresh_channel_token", extra={"request": request_obj, "response": response})
     return jsonify(response.model_dump())
@@ -97,4 +85,3 @@ def notify_game():
 
 if __name__ == "__main__":
     app.run(port=8080)
-```
