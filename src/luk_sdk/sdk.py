@@ -222,22 +222,22 @@ class NotifyGameRequest(BaseModel):
         return json.loads(self.data, object_hook=lambda d: NotifyGameRequestEnd(**d))
 
 class NotifyGameRequestStartBefore(BaseModel):
-    room_id: int = 0
-    round_id: int = 0
+    room_id: str = ""
+    round_id: str = ""
     player_ready_status: Dict[str, bool] = {}
     notify_action: Action = 0
     game_setting: str = ""
 
 class NotifyGameRequestGaming(BaseModel):
-    room_id: int = 0
-    round_id: int = 0
+    room_id: str = ""
+    round_id: str = ""
     player_num: int = 0
     player_uids: List[str] = []
     notify_action: Action = 0
 
 class NotifyGameRequestEnd(BaseModel):
-    room_id: int = 0
-    round_id: int = 0
+    room_id: str = ""
+    round_id: str = ""
     rank: List[str] = []
     is_force_end: bool = False
     notify_action: Action = 0
