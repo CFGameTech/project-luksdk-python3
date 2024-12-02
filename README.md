@@ -18,7 +18,7 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
-sdk = SDK("fa7ad21fdbe10218024f88538a86")
+sdk = SDK("......", "https://......")
 
 @app.route("/sdk/get_channel_token", methods=["POST"])
 def get_channel_token():

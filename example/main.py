@@ -6,7 +6,7 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
-sdk = SDK("fa7ad21fdbe10218024f88538a86")
+sdk = SDK("fa7ad21fdbe10218024f88538a86", "https://api.luk.live")
 
 @app.route("/sdk/get_channel_token", methods=["POST"])
 def get_channel_token():
@@ -81,6 +81,11 @@ def notify_game():
 
     response = sdk.notify_game(request_obj, lambda req: (NotifyGameResponse(), None))
 
+    return jsonify(response.model_dump())
+
+@app.route("/sdk/get_game_service_list", methods=["GET"])
+def get_game_service_list():
+    response = sdk.get_game_service_list(GetGameServiceListRequest(c_id=1010997, timestamp=123))
     return jsonify(response.model_dump())
 
 if __name__ == "__main__":
